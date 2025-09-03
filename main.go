@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -74,6 +75,14 @@ func installService() {
 		return
 	}
 
+	// Get the current user
+	currentUser, err := user.Current()
+	if err != nil {
+		fmt.Printf("Failed to get current user: %v\n", err)
+		return
+	}
+	username := currentUser.Username
+
 	// Get the executable path
 	exe, err := os.Executable()
 	if err != nil {
@@ -91,12 +100,12 @@ After=network.target
 [Service]
 ExecStart=%s
 Restart=always
-User=root
+User=%s
 WorkingDirectory=%s
 
 [Install]
 WantedBy=multi-user.target
-`, exe, dir)
+`, exe, username, dir)
 
 	// Write the service file
 	servicePath := "/etc/systemd/system/unchain.service"
