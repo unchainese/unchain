@@ -1,11 +1,11 @@
-name: 构建image和发布
+name: pub-docker-image
 
 on:
   push:
     branches:
       - main
     tags:
-      - '*'
+      - "*"
 
 jobs:
   build-and-push:

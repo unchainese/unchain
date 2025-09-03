@@ -1,13 +1,12 @@
-name: Go
+name: SmokeAliyunECS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     environment: production
@@ -26,7 +25,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.23'
+          go-version: "1.23"
 
       - name: Get build time
         id: build-time
@@ -34,31 +33,28 @@ jobs:
 
       - name: Build
         env:
-          CGO_ENABLED: '1'
-          GOARCH: 'amd64'
+          CGO_ENABLED: "1"
+          GOARCH: "amd64"
           GIT_SHA: ${{ github.sha }}
           GIT_REF_NAME: ${{ github.ref_name }}
           GIT_REPO: ${{ github.repository }}
         run: |
           echo "Building Go application with gitHash=${{ env.gitHash }} and buildTime=${{ env.buildTime }}"
-          go build -ldflags="-X 'github.com/unchainese/unchain/internal/global.gitHash=${{ github.sha }}' -X 'github.com/unchainese/unchain/internal/global.buildTime=${{ env.buildTime }}'" -o unchain main.go
+          go build -ldflags="-X 'main.gitHash=${{ github.sha }}' -X 'main.buildTime=${{ env.buildTime }}'" -o unchain .
 
-      - name: Deploy to AWS EC2
+      - name: Deploy to AliCloud ECS
         env:
-          SSH_HOST: ${{ secrets.EC2_HOST }}
-          SSH_USER: ${{ secrets.EC2_USER }}
-          SSH_KEY: ${{ secrets.EC2_KEY }}
-          CONFIG_TOML: ${{ vars.CONFIG_TOML }}
+          SSH_HOST: ${{ secrets.ECS_HOST }}
+          SSH_USER: ${{ secrets.ECS_USER }}
+          SSH_KEY: ${{ secrets.ECS_KEY }}
+          ENV_VARS: ${{ vars.ENV_VARS }}
         run: bash .github/workflows/deploy.sh
+      #       add more server to deploy
 
-
-#      - name: Deploy to AliCould ECS
-#        env:
-#           SSH_HOST: ${{ secrets.ECS_HOST }}
-#           SSH_USER: ${{ secrets.ECS_USER }}
-#           SSH_KEY: ${{ secrets.ECS_KEY }}
-#           CONFIG_TOML: ${{ vars.CONFIG_TOML }}
-#        run: bash .github/workflows/deploy.sh
-##       add more server to deploy
-
-        
+      - name: Deploy to ECS A
+        env:
+          SSH_HOST: ${{ secrets.ECS_HOST1 }}
+          SSH_USER: ${{ secrets.ECS_USER1 }}
+          SSH_KEY: ${{ secrets.ECS_KEY }}
+          ENV_VARS: ${{ vars.ENV_VARS }}
+        run: bash .github/workflows/deploy.sh

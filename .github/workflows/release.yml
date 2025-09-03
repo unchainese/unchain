@@ -28,7 +28,7 @@ jobs:
       - name: Build executable
         id: build
         run: |
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -o bin/${{ matrix.goos }}-${{ matrix.goarch }}/unchain main.go
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -o bin/${{ matrix.goos }}-${{ matrix.goarch }}/unchain .
           echo "OUTPUT_DIR=bin/${{ matrix.goos }}-${{ matrix.goarch }}" >> $GITHUB_OUTPUT
 
       - name: Create archive
