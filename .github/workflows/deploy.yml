@@ -1,4 +1,4 @@
-name: Go
+name: SmokeAliyunECS
 
 on:
   push:
@@ -43,7 +43,6 @@ jobs:
           go build -ldflags="-X 'main.gitHash=${{ github.sha }}' -X 'main.buildTime=${{ env.buildTime }}'" -o unchain .
 
       - name: Deploy to AliCloud ECS
-        if: github.event_name == 'push'
         env:
           SSH_HOST: ${{ secrets.ECS_HOST }}
           SSH_USER: ${{ secrets.ECS_USER }}
