@@ -2,7 +2,7 @@
 set -e
 
 # Create SSH key file with proper handling, stripping Windows-style line endings
-echo "$SSH_KEY" | tr -d '\r' > key.pem
+printf '%s' "$SSH_KEY" | tr -d '\r' > key.pem
 chmod 600 key.pem
 
 # Verify key file was created properly
