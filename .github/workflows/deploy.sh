@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "$SSH_KEY" | tr -d '\r' > key.pem
+printf '%s\n' "$SSH_KEY" | tr -d '\r' > key.pem
 
 chmod 600 key.pem
 
