@@ -1,6 +1,8 @@
 #!/bin/bash
 
+echo $SSH_KEY
 
+echo '----------'
 
 echo "$SSH_KEY" | tr -d '\r' > key.pem
 
