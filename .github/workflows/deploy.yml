@@ -40,7 +40,7 @@ jobs:
           GIT_REPO: ${{ github.repository }}
         run: |
           echo "Building Go application with gitHash=${{ env.gitHash }} and buildTime=${{ env.buildTime }}"
-          go build -ldflags="-X 'github.com/unchainese/unchain/internal/global.gitHash=${{ github.sha }}' -X 'github.com/unchainese/unchain/internal/global.buildTime=${{ env.buildTime }}'" -o unchain main.go
+          go build -ldflags="-X 'github.com/unchainese/unchain/internal/global.gitHash=${{ github.sha }}' -X 'github.com/unchainese/unchain/internal/global.buildTime=${{ env.buildTime }}'" -o unchain .
 
       - name: Deploy to AliCould ECS
         env:
