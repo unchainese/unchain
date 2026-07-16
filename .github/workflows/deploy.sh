@@ -5,17 +5,39 @@ set -euo pipefail
 key_file=$(mktemp)
 trap 'rm -f "$key_file"' EXIT
 
-# GitHub secrets may contain literal escaped newlines when supplied by automation.
-ssh_key=${SSH_KEY//\\n/$'\n'}
-if [[ "$ssh_key" == *"-----BEGIN"* ]]; then
+if [[ -z "${SSH_KEY:-}" ]]; then
+  echo "ECS_KEY is not configured" >&2
+  exit 1
+fi
+
+# GitHub secrets can arrive as PEM text, escaped text, or base64.
+ssh_key=${SSH_KEY//\\r/$'\r'}
+ssh_key=${ssh_key//\\n/$'\n'}
+if [[ "$ssh_key" == \"*\" && "$ssh_key" == *\" ]]; then
+  ssh_key=${ssh_key:1:${#ssh_key}-2}
+elif [[ "$ssh_key" == \'*\' && "$ssh_key" == *\' ]]; then
+  ssh_key=${ssh_key:1:${#ssh_key}-2}
+fi
+
+if [[ "$ssh_key" == *"-----BEGIN "* ]]; then
   printf '%s\n' "$ssh_key" | tr -d '\r' > "$key_file"
 else
-  printf '%s' "$ssh_key" | base64 --decode > "$key_file"
+  if ! printf '%s' "$ssh_key" | base64 --decode > "$key_file" 2>/dev/null; then
+    echo "ECS_KEY is neither a private-key file nor valid base64" >&2
+    exit 1
+  fi
 fi
 chmod 600 "$key_file"
 
-if ! ssh-keygen -y -f "$key_file" >/dev/null 2>&1; then
-  echo "SSH_KEY is not a valid unencrypted private key" >&2
+key_error=$(ssh-keygen -y -f "$key_file" 2>&1 >/dev/null || true)
+if [[ -n "$key_error" ]]; then
+  if grep -qiE 'passphrase|encrypted' <<< "$key_error"; then
+    echo "ECS_KEY is encrypted; store an unencrypted OpenSSH private key in the GitHub secret" >&2
+  elif grep -qE 'BEGIN (PUBLIC KEY|SSH2 PUBLIC KEY)' "$ssh_key" || grep -qE '^ssh-(rsa|ed25519|ecdsa)' "$ssh_key"; then
+    echo "ECS_KEY contains a public key; store the matching private key instead" >&2
+  else
+    echo "ECS_KEY is not a valid unencrypted OpenSSH private key" >&2
+  fi
   exit 1
 fi
 
