@@ -42,14 +42,6 @@ jobs:
           echo "Building Go application with gitHash=${{ env.gitHash }} and buildTime=${{ env.buildTime }}"
           go build -ldflags="-X 'github.com/unchainese/unchain/internal/global.gitHash=${{ github.sha }}' -X 'github.com/unchainese/unchain/internal/global.buildTime=${{ env.buildTime }}'" -o unchain main.go
 
-      - name: Deploy to AWS EC2
-        env:
-          SSH_HOST: ${{ secrets.EC2_HOST }}
-          SSH_USER: ${{ secrets.EC2_USER }}
-          SSH_KEY: ${{ secrets.EC2_KEY }}
-          CONFIG_TOML: ${{ vars.CONFIG_TOML }}
-        run: bash .github/workflows/deploy.sh
-
       - name: Deploy to AliCould ECS
         env:
           SSH_HOST: ${{ secrets.ECS_HOST }}
