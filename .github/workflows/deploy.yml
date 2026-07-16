@@ -50,4 +50,3 @@ jobs:
           CONFIG_TOML: ${{ vars.CONFIG_TOML }}
         run: bash .github/workflows/deploy.sh
 #       add more server to deploy
-
