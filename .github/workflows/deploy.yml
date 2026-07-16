@@ -47,6 +47,6 @@ jobs:
           SSH_HOST: ${{ secrets.ECS_HOST }}
           SSH_USER: ${{ secrets.ECS_USER }}
           SSH_KEY: ${{ secrets.ECS_KEY }}
-          CONFIG_TOML: ${{ vars.CONFIG_TOML }}
+          ENV_VARS: ${{ vars.ENV_VARS }}
         run: bash .github/workflows/deploy.sh
 #       add more server to deploy

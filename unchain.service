@@ -3,12 +3,10 @@ Description=Vless over Websocket Proxy
 After=network.target
 
 [Service]
-# 可执行二进制文件路 /app 目录可以替换其他的目录路径.
-ExecStart=/app/unchain
+WorkingDirectory=/opt/unchain
+ExecStart=/opt/unchain/app
 Restart=always
 User=root
-# 可执行二进制文件的工作目录 /app 目录可以替换其他的目录路径.
-WorkingDirectory=/app
 
 
 [Install]

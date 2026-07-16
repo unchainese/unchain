@@ -138,7 +138,7 @@ func (app *App) loopPush() {
 }
 
 func (app *App) trafficInc(uid string, byteN int64) {
-	if !app.cfg.EnableDataUsageMetering {
+	if !app.cfg.EnableMetering {
 		return
 	}
 	kb := byteN >> 10
