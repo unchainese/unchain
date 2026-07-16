@@ -42,7 +42,7 @@ jobs:
           echo "Building Go application with gitHash=${{ env.gitHash }} and buildTime=${{ env.buildTime }}"
           go build -ldflags="-X 'main.gitHash=${{ github.sha }}' -X 'main.buildTime=${{ env.buildTime }}'" -o unchain .
 
-      - name: Deploy to AliCould ECS
+      - name: Deploy to AliCloud ECS
         env:
           SSH_HOST: ${{ secrets.ECS_HOST }}
           SSH_USER: ${{ secrets.ECS_USER }}
