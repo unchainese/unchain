@@ -1,10 +1,33 @@
 #!/bin/bash
+set -e
 
+# Create SSH key file with proper handling
 echo "$SSH_KEY" > key.pem
 chmod 600 key.pem
 
-scp -o StrictHostKeyChecking=no -i key.pem unchain unchain.service $SSH_USER@$SSH_HOST:~
-ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$SSH_HOST << EOF
+# Verify key file was created properly
+if [ ! -f key.pem ] || [ ! -s key.pem ]; then
+  echo "Error: SSH key file not created or is empty"
+  exit 1
+fi
+
+echo "Deploying to $SSH_USER@$SSH_HOST..."
+
+# Copy binary and service file via SCP
+scp -o StrictHostKeyChecking=no \
+    -o UserKnownHostsFile=/dev/null \
+    -o ConnectTimeout=10 \
+    -i key.pem \
+    unchain unchain.service \
+    "${SSH_USER}@${SSH_HOST}:~"
+
+# Execute deployment commands via SSH
+ssh -o StrictHostKeyChecking=no \
+    -o UserKnownHostsFile=/dev/null \
+    -o ConnectTimeout=10 \
+    -i key.pem \
+    "${SSH_USER}@${SSH_HOST}" << 'SSHEOF'
+  set -e
   cd ~ && pwd
   sudo rm -rf /app && sudo mkdir /app
   sudo mv unchain /app/unchain
@@ -15,4 +38,8 @@ ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$SSH_HOST << EOF
   sudo systemctl stop unchain.service || true
   sudo systemctl start unchain.service
   sudo systemctl status unchain.service
-EOF
+SSHEOF
+
+# Clean up
+rm -f key.pem
+echo "Deployment completed successfully"
