@@ -2,12 +2,11 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     environment: production
@@ -26,7 +25,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.23'
+          go-version: "1.23"
 
       - name: Get build time
         id: build-time
@@ -34,8 +33,8 @@ jobs:
 
       - name: Build
         env:
-          CGO_ENABLED: '1'
-          GOARCH: 'amd64'
+          CGO_ENABLED: "1"
+          GOARCH: "amd64"
           GIT_SHA: ${{ github.sha }}
           GIT_REF_NAME: ${{ github.ref_name }}
           GIT_REPO: ${{ github.repository }}
@@ -51,14 +50,12 @@ jobs:
           CONFIG_TOML: ${{ vars.CONFIG_TOML }}
         run: bash .github/workflows/deploy.sh
 
+      - name: Deploy to AliCould ECS
+        env:
+          SSH_HOST: ${{ secrets.ECS_HOST }}
+          SSH_USER: ${{ secrets.ECS_USER }}
+          SSH_KEY: ${{ secrets.ECS_KEY }}
+          CONFIG_TOML: ${{ vars.CONFIG_TOML }}
+        run: bash .github/workflows/deploy.sh
+#       add more server to deploy
 
-#      - name: Deploy to AliCould ECS
-#        env:
-#           SSH_HOST: ${{ secrets.ECS_HOST }}
-#           SSH_USER: ${{ secrets.ECS_USER }}
-#           SSH_KEY: ${{ secrets.ECS_KEY }}
-#           CONFIG_TOML: ${{ vars.CONFIG_TOML }}
-#        run: bash .github/workflows/deploy.sh
-##       add more server to deploy
-
-        
