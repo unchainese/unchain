@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -90,7 +92,7 @@ func (app *App) Run() {
 }
 
 func (app *App) PrintVLESSConnectionURLS() {
-	listenPort := app.cfg.ListenPort()
+	listenPort := app.cfg.AppPort
 
 	fmt.Printf("\n\n visit to get VLESS connection info: http://127.0.0.1:%d/sub/<YOUR_CONFIGED_UUID> \n", listenPort)
 	fmt.Printf("visit to get VLESS connection info: http://<HOST>:%d/sub/<YOUR_UUID>\n", listenPort)
@@ -136,7 +138,7 @@ func (app *App) loopPush() {
 }
 
 func (app *App) trafficInc(uid string, byteN int64) {
-	if !app.cfg.EnableUsageMetering() {
+	if !app.cfg.EnableDataUsageMetering {
 		return
 	}
 	kb := byteN >> 10
@@ -152,6 +154,33 @@ func (app *App) trafficInc(uid string, byteN int64) {
 	app.userUsedTrafficKb.Store(uid, kb)
 }
 
+func getNetworkIp() []string {
+	allInterfaces, err := net.Interfaces()
+	if err != nil {
+		log.Println("Error getting network interfaces:", err)
+		return nil
+	}
+	ips := make([]string, 0)
+	for _, iface := range allInterfaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			log.Println("Error getting addresses for interface:", iface.Name, "error:", err)
+			continue
+		}
+		for _, addr := range addrs {
+			ipNet, ok := addr.(*net.IPNet)
+			if !ok {
+				continue
+			}
+			if ipNet.IP.IsLoopback() || ipNet.IP.To4() == nil || ipNet.IP.IsMulticast() || ipNet.IP.IsLinkLocalUnicast() || ipNet.IP.IsLinkLocalMulticast() {
+				continue
+			}
+			ips = append(ips, ipNet.IP.String())
+		}
+	}
+	return ips
+}
+
 func (app *App) stat() *AppStat {
 	data := make(map[string]int64)
 	app.userUsedTrafficKb.Range(func(key, value interface{}) bool {
@@ -163,6 +192,7 @@ func (app *App) stat() *AppStat {
 		hostname = "unknown"
 		slog.Error(err.Error())
 	}
+
 	res := &AppStat{
 		Traffic:     data,
 		Hostname:    hostname,
@@ -170,6 +200,7 @@ func (app *App) stat() *AppStat {
 		VersionInfo: app.cfg.GitHash + " -> " + app.cfg.BuildTime,
 	}
 	res.SubAddresses = app.cfg.SubHostWithPort()
+	res.Ips = getNetworkIp()
 	return res
 }
 
@@ -177,6 +208,7 @@ type AppStat struct {
 	Traffic      map[string]int64 `json:"traffic"`
 	Hostname     string           `json:"hostname"`
 	SubAddresses []string         `json:"sub_addresses"`
+	Ips          []string         `json:"ips"`
 	Goroutine    int64            `json:"goroutine"`
 	VersionInfo  string           `json:"version_info"`
 }
@@ -205,6 +237,14 @@ func (app *App) PushNode() {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Error registering:", err)
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		all, err := io.ReadAll(resp.Body) //read and discard body
+		if err != nil {
+			log.Println("Error reading response body:", err)
+		}
+		log.Println("Error registering, status code:", resp.StatusCode, "body:", string(all))
 		return
 	}
 	defer resp.Body.Close()

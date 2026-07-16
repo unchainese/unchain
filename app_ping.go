@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime"
@@ -20,6 +21,13 @@ func (app *App) Ping(w http.ResponseWriter, _ *http.Request) {
 		n += kb
 	}
 
+	jsonData, err := json.Marshal(stat)
+	if err != nil {
+		fmt.Println("Error marshaling stat to JSON:", err)
+	} else {
+		fmt.Println("Stat JSON:", string(jsonData))
+	}
+
 	lines := []string{
 		"BUILT HASH:  https://github.com/unchainese/unchain/tree/" + app.cfg.GitHash,
 		"BUILT TIME:  " + app.cfg.BuildTime,
@@ -28,6 +36,7 @@ func (app *App) Ping(w http.ResponseWriter, _ *http.Request) {
 		fmt.Sprintf("MEMORY.Alloc:    %.2fMB", float64(memStats.Alloc)/1024/1024),
 		fmt.Sprintf("MEMORY.TotalAlloc:    %.2fMB", float64(memStats.TotalAlloc)/1024/1024),
 		fmt.Sprintf("Used Traffic:    %d KB", n),
+		fmt.Sprintf("Stat JSON: %s", string(jsonData)),
 	}
 	w.Write([]byte(strings.Join(lines, "\n\n")))
 }

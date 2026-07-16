@@ -11,20 +11,11 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
 )
 
-var configFilePath string
-
-func init() {
-	flag.StringVar(&configFilePath, "config", "config.toml", "配置文件路径")
-}
-
 func main() {
-	flag.Parse()
-
 	// Parse subcommands
-	args := flag.Args()
+	args := os.Args[1:]
 	if len(args) == 0 {
 		args = append(args, "run") // default to "run" if no subcommand is provided
 	}
@@ -47,7 +38,7 @@ func main() {
 }
 
 func runServer() {
-	c := Cfg(configFilePath) //using default config.toml file
+	c := Cfg() //using default config.toml file
 	fd := SetupLogger(c)
 	defer fd.Close()
 
@@ -55,7 +46,7 @@ func runServer() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
-	app :=NewApp(c, stop)
+	app := NewApp(c, stop)
 	app.PushNode()                 //register node info to the manager server
 	app.PrintVLESSConnectionURLS() //for standalone node
 	go app.Run()
