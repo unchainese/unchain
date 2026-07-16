@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"bytes"
@@ -16,11 +16,10 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/unchainese/unchain/global"
 )
 
 type App struct {
-	cfg               *global.Config
+	cfg               *Config
 	userUsedTrafficKb sync.Map // string -> int64
 	svr               *http.Server
 	exitSignal        chan os.Signal
@@ -53,7 +52,7 @@ func (app *App) httpSvr() {
 
 }
 
-func NewApp(c *global.Config, sig chan os.Signal) *App {
+func NewApp(c *Config, sig chan os.Signal) *App {
 	bufferSize := c.GetBufferSize()
 	app := &App{
 		cfg:               c,

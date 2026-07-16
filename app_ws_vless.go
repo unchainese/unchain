@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -14,8 +14,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/unchainese/unchain/schema"
-
 	"github.com/gorilla/websocket"
 )
 
@@ -27,7 +25,7 @@ const (
 	secWebSocketProto = "sec-websocket-protocol"
 )
 
-func startDstConnection(vd *schema.ProtoVLESS, timeout time.Duration) (net.Conn, []byte, error) {
+func startDstConnection(vd *ProtoVLESS, timeout time.Duration) (net.Conn, []byte, error) {
 	conn, err := net.DialTimeout(vd.DstProtocol, vd.HostPort(), timeout)
 	if err != nil {
 		return nil, nil, fmt.Errorf("connecting to destination: %w", err)
@@ -73,7 +71,7 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	vData, err := schema.VLESSParse(earlyData)
+	vData, err := VLESSParse(earlyData)
 	if err != nil {
 		log.Println("Error parsing vless data:", err)
 		return
@@ -97,7 +95,7 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 
 const readTimeOut = 60 * time.Second * 3
 
-func (app *App) vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int64 {
+func (app *App) vlessTCP(ctx context.Context, sv *ProtoVLESS, ws *websocket.Conn) int64 {
 	logger := sv.Logger()
 	conn, headerVLESS, err := startDstConnection(sv, time.Millisecond*1000)
 	if err != nil {
@@ -195,7 +193,7 @@ func (app *App) vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websock
 }
 
 // vlessUDP handles UDP traffic over VLESS protocol via WebSocket is tested ok
-func (app *App) vlessUDP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) (trafficMeter int64) {
+func (app *App) vlessUDP(_ context.Context, sv *ProtoVLESS, ws *websocket.Conn) (trafficMeter int64) {
 	logger := sv.Logger()
 	conn, headerVLESS, err := startDstConnection(sv, time.Millisecond*1000)
 	if err != nil {

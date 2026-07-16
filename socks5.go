@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/unchainese/unchain/schema"
 )
 
 // SOCKS5 protocol and server constants
@@ -224,7 +223,7 @@ func makeTargetWs(addr, uid string, req *socks5Request) (*targetWs, error) {
 	if req.command == cmdUDPAssociate {
 		udpOrTcp = "udp"
 	}
-	vlessHeadData := schema.MakeVless(uid, req.address, req.port, udpOrTcp, nil).DataHeader()
+	vlessHeadData := MakeVless(uid, req.address, req.port, udpOrTcp, nil).DataHeader()
 	err = target.WriteMessage(websocket.BinaryMessage, vlessHeadData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send VLESS header: %w", err)

@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/unchainese/unchain/global"
-	"github.com/unchainese/unchain/server"
 )
 
 var configFilePath string
@@ -49,15 +47,15 @@ func main() {
 }
 
 func runServer() {
-	c := global.Cfg(configFilePath) //using default config.toml file
-	fd := global.SetupLogger(c)
+	c := Cfg(configFilePath) //using default config.toml file
+	fd := SetupLogger(c)
 	defer fd.Close()
 
 	// Channel to listen for OS signals
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
-	app := server.NewApp(c, stop)
+	app :=NewApp(c, stop)
 	app.PushNode()                 //register node info to the manager server
 	app.PrintVLESSConnectionURLS() //for standalone node
 	go app.Run()
@@ -140,7 +138,7 @@ WantedBy=multi-user.target
 
 func runClient() {
 	fmt.Println("Starting SOCKS5 client...")
-	server.StartSocks5Server()
+	StartSocks5Server()
 }
 
 func printHelp() {

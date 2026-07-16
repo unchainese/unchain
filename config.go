@@ -1,4 +1,4 @@
-package global
+package main
 
 import (
 	"bytes"
@@ -31,7 +31,7 @@ type Config struct {
 }
 
 func (c Config) EnableUsageMetering() bool {
-	return strings.ToLower(c.EnableDataUsageMetering) == "true"
+	return strings.EqualFold(c.EnableDataUsageMetering, "true")
 }
 
 func (c Config) SubHostWithPort() []string {
@@ -62,16 +62,49 @@ func (c Config) PushIntervalSecond() int {
 	return int(iv)
 }
 
+func osEnvWithDefault(key, def string) string {
+	if envVal := strings.TrimSpace(os.Getenv(key)); envVal == "" {
+		fmt.Printf("%s defaultValue:  %s\n", key, def)
+		return strings.TrimSpace(def)
+	} else {
+		return envVal
+	}
+}
+
 func loadEnv() *Config {
 	opt := Config{}
 	for i := 0; i < reflect.TypeOf(opt).NumField(); i++ {
 		propertyName := reflect.TypeOf(opt).Field(i).Name
 		key := snakeCaseUpper(propertyName)
-		def := reflect.TypeOf(opt).Field(i).Tag.Get("def")
-		desc := reflect.TypeOf(opt).Field(i).Tag.Get("desc")
-		vv := osEnvWithDefault(key, desc, def)
-		reflect.ValueOf(&opt).Elem().Field(i).SetString(vv)
+		def := reflect.TypeOf(opt).Field(i).Tag.Get("default")
+		envOrDefaultValue := osEnvWithDefault(key, def)
+
+		kind := reflect.TypeOf(opt).Field(i).Type.Kind()
+		switch kind {
+		case reflect.String:
+			reflect.ValueOf(&opt).Elem().Field(i).SetString(envOrDefaultValue)
+		case reflect.Int, reflect.Int64, reflect.Int32:
+			if v, err := strconv.ParseInt(envOrDefaultValue, 10, 64); err == nil {
+				reflect.ValueOf(&opt).Elem().Field(i).SetInt(v)
+			}
+		case reflect.Float32, reflect.Float64:
+			if v, err := strconv.ParseFloat(envOrDefaultValue, 64); err == nil {
+				reflect.ValueOf(&opt).Elem().Field(i).SetFloat(v)
+			}
+		case reflect.Uint, reflect.Uint64, reflect.Uint32:
+			if v, err := strconv.ParseUint(envOrDefaultValue, 10, 64); err == nil {
+				reflect.ValueOf(&opt).Elem().Field(i).SetUint(v)
+			}
+		case reflect.Bool:
+			if v, err := strconv.ParseBool(envOrDefaultValue); err == nil {
+				reflect.ValueOf(&opt).Elem().Field(i).SetBool(v)
+			}
+		default:
+			fmt.Printf("unsupported config field type: %s\n", reflect.TypeOf(opt).Field(i).Type.Kind().String())
+			continue
+		}
 	}
+
 	return &opt
 }
 
@@ -93,15 +126,6 @@ func snakeCase(camel string) string {
 
 func snakeCaseUpper(camel string) string {
 	return strings.ToUpper(snakeCase(camel))
-}
-
-func osEnvWithDefault(key, desc, def string) string {
-	if v := os.Getenv(key); v == "" {
-		fmt.Printf("%s <%s> 默认:  %s\n", key, desc, def)
-		return def
-	} else {
-		return v
-	}
 }
 
 func (c Config) ListenPort() int {

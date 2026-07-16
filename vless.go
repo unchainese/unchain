@@ -1,4 +1,4 @@
-package schema
+package main
 
 import (
 	"encoding/binary"
