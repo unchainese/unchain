@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-# Create SSH key file with proper handling
-echo "$SSH_KEY" > key.pem
+# Create SSH key file with proper handling, stripping Windows-style line endings
+printf '%s' "$SSH_KEY" | tr -d '\r' > key.pem
 chmod 600 key.pem
 
 # Verify key file was created properly
@@ -17,6 +17,8 @@ echo "Deploying to $SSH_USER@$SSH_HOST..."
 scp -o StrictHostKeyChecking=no \
     -o UserKnownHostsFile=/dev/null \
     -o ConnectTimeout=10 \
+    -o BatchMode=yes \
+    -o PasswordAuthentication=no \
     -i key.pem \
     unchain unchain.service \
     "${SSH_USER}@${SSH_HOST}:~"
@@ -25,6 +27,8 @@ scp -o StrictHostKeyChecking=no \
 ssh -o StrictHostKeyChecking=no \
     -o UserKnownHostsFile=/dev/null \
     -o ConnectTimeout=10 \
+    -o BatchMode=yes \
+    -o PasswordAuthentication=no \
     -i key.pem \
     "${SSH_USER}@${SSH_HOST}" << 'SSHEOF'
   set -e
