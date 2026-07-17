@@ -171,18 +171,15 @@ func (app *App) stat() *AppStat {
 		Goroutine:   int64(runtime.NumGoroutine()),
 		VersionInfo: app.cfg.GitHash + " -> " + app.cfg.BuildTime,
 	}
-	res.SubAddresses = []string{fmt.Sprintf("http://%s:%d", getNetworkIp(), app.cfg.AppPort)}
-	res.Ips = []string{getNetworkIp()}
 	return res
 }
 
 type AppStat struct {
-	Traffic      map[string]int64 `json:"traffic"`
-	Hostname     string           `json:"hostname"`
-	SubAddresses []string         `json:"sub_addresses"`
-	Ips          []string         `json:"ips"`
-	Goroutine    int64            `json:"goroutine"`
-	VersionInfo  string           `json:"version_info"`
+	Traffic     map[string]int64 `json:"traffic"`
+	Hostname    string           `json:"hostname"`
+	Ip          string           `json:"ip"`
+	Goroutine   int64            `json:"goroutine"`
+	VersionInfo string           `json:"version_info"`
 }
 
 func (app *App) PushNode() {

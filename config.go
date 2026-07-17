@@ -1,7 +1,7 @@
 package main
 
 type Config struct {
-	AppPort        int    `def:"80"`                                                                        //golang app 服务端口,可选,建议默认80或者443, 8880 is cloudflare proxy port
+	AppPort        int    `def:"8080"`                                                                      //golang app 服务端口,可选,建议默认80或者443, 8880 is cloudflare proxy port
 	RegisterUrl    string `def:"https://unchain.libragen.cn/api/node"`                                      //optional,流量,用户鉴权的主控服务器地址
 	RegisterToken  string `def:"unchain.people.from.censorship.and.surveillance"`                           //optional,流量,用户鉴权的主控服务器token
 	AllowUsers     string `def:"903bcd04-79e7-429c-bf0c-0456c7de9cdc,903bcd04-79e7-429c-bf0c-0456c7de9cd1"` //单机模式下,允许的用户UUID

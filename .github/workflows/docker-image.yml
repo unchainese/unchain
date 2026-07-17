@@ -9,6 +9,7 @@ on:
 
 jobs:
   build-and-push:
+    if: github.repository == 'unchainese/unchain'
     runs-on: ubuntu-latest
     environment: production
     steps:

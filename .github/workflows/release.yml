@@ -4,18 +4,18 @@ on:
   release:
     types: [published] # Trigger on release published by github web interface release page
 
-
 jobs:
   build:
+    if: github.repository == 'unchainese/unchain'
     name: Build Binaries
     permissions:
-      contents: write  
+      contents: write
     runs-on: ubuntu-latest
     strategy:
       matrix:
         goos: [linux, windows, darwin]
         goarch: [amd64, arm64]
-        
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,7 +23,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.23'  
+          go-version: "1.23"
 
       - name: Build executable
         id: build
@@ -52,5 +52,3 @@ jobs:
           asset_path: bin/${{ matrix.goos }}-${{ matrix.goarch }}/${{ steps.archive.outputs.ARCHIVE_NAME }}
           asset_name: unchain-${{ matrix.goos }}-${{ matrix.goarch }}.${{ steps.archive.outputs.ARCHIVE_NAME}}
           asset_content_type: application/octet-stream
-
- 

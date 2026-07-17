@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    if: github.repository == 'mojocn/unchain'
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -16,6 +17,13 @@ jobs:
       GIT_REPO: ${{ github.repository }}
 
     steps:
+      - name: Skip Smoke Run
+        run: |
+          if [ -z "${{ secrets.SSH_KEY }}" ]; then
+            echo "SSH_KEY secret is not set or empty."
+            exit 1
+          fi
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -42,19 +50,19 @@ jobs:
           echo "Building Go application with gitHash=${{ env.gitHash }} and buildTime=${{ env.buildTime }}"
           go build -ldflags="-X 'main.gitHash=${{ github.sha }}' -X 'main.buildTime=${{ env.buildTime }}'" -o unchain .
 
-      - name: Deploy to AliCloud ECS
+      - name: Deploy to ECS A
         env:
-          SSH_HOST: ${{ secrets.ECS_HOST }}
-          SSH_USER: ${{ secrets.ECS_USER }}
-          SSH_KEY: ${{ secrets.ECS_KEY }}
+          SSH_HOST: ${{ vars.HOST_A }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
           ENV_VARS: ${{ vars.ENV_VARS }}
         run: bash .github/workflows/deploy.sh
       #       add more server to deploy
 
-      - name: Deploy to ECS A
+      - name: Deploy to ECS B
         env:
-          SSH_HOST: ${{ secrets.ECS_HOST1 }}
-          SSH_USER: ${{ secrets.ECS_USER1 }}
-          SSH_KEY: ${{ secrets.ECS_KEY }}
-          ENV_VARS: ${{ vars.ENV_VARS }}
+          SSH_HOST: ${{ vars.HOST_B }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          ENV_VARS: ${{ vars.ENV_FILE }}
         run: bash .github/workflows/deploy.sh
