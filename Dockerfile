@@ -13,12 +13,16 @@ COPY --from=builder /app/app .
 
 
 ENV APP_ENV=production
-ENV APP_PORT=80
-ENV REGISTER_URL=https://unchainapi.bob99.workers.dev/api/node
-ENV APP_HOST=a.mojocn.com
+ENV APP_HOST=svr.libragen.unchain
+ENV APP_PORT=8880
+ENV REGISTER_URL=https://unchain.libragen.cn/api/node
+ENV REGISTER_TOKEN="unchain.people.from.censorship.and.surveillance"
 ENV ALLOW_USERS=903bcd04-79e7-429c-bf0c-0456c7de9cdc,903bcd04-79e7-429c-bf0c-0456c7de9cd1
+ENV LOG_FILE=
+ENV DEBUG_LEVEL=DEBUG
 ENV INTERVAL_SECOND=3600
-ENV ENABLE_DATA_USAGE_METERING=true
+ENV ENABLE_METERING=true
+ENV BUFFER_SIZE=8192
 
-EXPOSE 80
+EXPOSE 8880
 ENTRYPOINT ["./app", "run"]
