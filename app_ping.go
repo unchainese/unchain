@@ -29,9 +29,9 @@ func (app *App) Ping(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	lines := []string{
-		"BUILT HASH:  https://github.com/unchainese/unchain/tree/" + app.cfg.GitHash,
-		"BUILT TIME:  " + app.cfg.BuildTime,
-		"RUN_AT:     " + app.cfg.RunAt,
+		"BUILT HASH:  https://github.com/unchainese/unchain/tree/" + Cfg().GitHash,
+		"BUILT TIME:  " + Cfg().BuildTime,
+		"RUN_AT:     " + Cfg().RunAt,
 		fmt.Sprintf("GOROUTINE: %d", goroutineCount),
 		fmt.Sprintf("MEMORY.Alloc:    %.2fMB", float64(memStats.Alloc)/1024/1024),
 		fmt.Sprintf("MEMORY.TotalAlloc:    %.2fMB", float64(memStats.TotalAlloc)/1024/1024),

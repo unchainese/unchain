@@ -13,4 +13,5 @@ type Config struct {
 	RunAt          string `def:""`                                                                          //optional run at
 	EnableMetering bool   `def:"true"`                                                                      //是否开启用户流量统计,使用true 开启用户流量统计,使用false 关闭用户流量统计
 	BufferSize     int    `def:"8192"`                                                                      //缓冲区大小,用于WebSocket和TCP/UDP读取
+	NetworkIp      string `def:""`                                                                          //optional,用于指定本机的公网IP地址,如果不指定,则会自动获取本机的公网IP地址
 }

@@ -54,7 +54,7 @@ func (c Config) ListenAddr() string {
 }
 
 func (c Config) SubAddr() string {
-	ip := getNetworkIp()
+	ip := c.NetworkIp
 	return fmt.Sprintf("%s:%d", ip, c.AppPort)
 }
 
@@ -100,7 +100,7 @@ func loadEnv() *Config {
 			continue
 		}
 	}
-
+	opt.NetworkIp = getNetworkIp()
 	return &opt
 }
 

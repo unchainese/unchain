@@ -20,7 +20,6 @@ import (
 )
 
 type App struct {
-	cfg               *Config
 	userUsedTrafficKb sync.Map // string -> int64
 	svr               *http.Server
 	exitSignal        chan os.Signal
@@ -43,7 +42,7 @@ func (app *App) httpSvr() {
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
 	server := &http.Server{
-		Addr:         app.cfg.ListenAddr(),
+		Addr:         Cfg().ListenAddr(),
 		Handler:      mux,
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,
@@ -56,7 +55,6 @@ func (app *App) httpSvr() {
 func NewApp(c *Config, sig chan os.Signal) *App {
 	bufferSize := c.GetBufferSize()
 	app := &App{
-		cfg:               c,
 		userUsedTrafficKb: sync.Map{},
 		exitSignal:        sig,
 		svr:               nil,
@@ -84,17 +82,16 @@ func NewApp(c *Config, sig chan os.Signal) *App {
 }
 
 func (app *App) Run() {
-	log.Println("server starting on http://", app.cfg.ListenAddr())
+	log.Println("server starting on http://", Cfg().ListenAddr())
 	if err := app.svr.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalf("Could not listen on %s: %v\n", app.cfg.ListenAddr(), err)
+		log.Fatalf("Could not listen on %s: %v\n", Cfg().ListenAddr(), err)
 	}
 }
 
 func (app *App) PrintVLESSConnectionURLS() {
-	listenPort := app.cfg.AppPort
+	subAddr := Cfg().SubAddr()
 
-	fmt.Printf("\n\n visit to get VLESS connection info: http://127.0.0.1:%d/sub/<YOUR_CONFIGED_UUID> \n", listenPort)
-	fmt.Printf("visit to get VLESS connection info: http://<HOST>:%d/sub/<YOUR_UUID>\n", listenPort)
+	fmt.Printf("visit to get VLESS connection info: http://%s/sub/<YOUR_UUID>\n", subAddr)
 
 	app.userUsedTrafficKb.Range(func(id, _ interface{}) bool {
 		userID := id.(string)
@@ -117,12 +114,12 @@ func (app *App) Shutdown(ctx context.Context) {
 }
 
 func (app *App) loopPush() {
-	url := app.cfg.RegisterUrl
+	url := Cfg().RegisterUrl
 	if url == "" {
 		log.Println("Register url is empty, skip register, runs in standalone mode")
 		url = "https://unchainapi.bob99.workers.dev/api/node"
 	}
-	tk := time.NewTicker(app.cfg.PushInterval())
+	tk := time.NewTicker(Cfg().PushInterval())
 	defer tk.Stop()
 	for {
 		select {
@@ -137,7 +134,7 @@ func (app *App) loopPush() {
 }
 
 func (app *App) trafficInc(uid string, byteN int64) {
-	if !app.cfg.EnableMetering {
+	if !Cfg().EnableMetering {
 		return
 	}
 	kb := byteN >> 10
@@ -169,7 +166,7 @@ func (app *App) stat() *AppStat {
 		Traffic:     data,
 		Hostname:    hostname,
 		Goroutine:   int64(runtime.NumGoroutine()),
-		VersionInfo: app.cfg.GitHash + " -> " + app.cfg.BuildTime,
+		VersionInfo: Cfg().GitHash + " -> " + Cfg().BuildTime,
 	}
 	return res
 }
@@ -183,7 +180,7 @@ type AppStat struct {
 }
 
 func (app *App) PushNode() {
-	url := app.cfg.RegisterUrl
+	url := Cfg().RegisterUrl
 	if url == "" {
 		return
 	}
@@ -201,7 +198,7 @@ func (app *App) PushNode() {
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", app.cfg.RegisterToken)
+	req.Header.Set("Authorization", Cfg().RegisterToken)
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -229,9 +226,9 @@ func (app *App) PushNode() {
 		slog.Debug("user available traffic", "uid", k, "available", userAvailableKB)
 		app.userUsedTrafficKb.Store(k, dummyUsedKB) //set allowed userID
 	}
-	app.cfg.UserIDS()
+	Cfg().UserIDS()
 	//append config file UUIDs
-	for _, id := range app.cfg.UserIDS() {
+	for _, id := range Cfg().UserIDS() {
 		app.userUsedTrafficKb.Store(id, dummyUsedKB)
 	}
 }

@@ -64,8 +64,8 @@ func (app *App) Sub(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	lines := []string{
-		app.cfg.GitHash,
-		app.cfg.BuildTime,
+		Cfg().GitHash,
+		Cfg().BuildTime,
 		"VLESS Subscription URL:",
 	}
 	lines = append(lines, subURLs...)
@@ -74,7 +74,7 @@ func (app *App) Sub(w http.ResponseWriter, r *http.Request) {
 
 func (app *App) vlessUrls(uid string) []string {
 	var subURLs []string
-	subAddr := app.cfg.SubAddr()
+	subAddr := Cfg().SubAddr()
 	sub := vlessSub{
 		remark:       subAddr,
 		addrWithPort: subAddr,
